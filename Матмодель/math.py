@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from math import atan, sqrt, exp, sin, cos, pi
 
-
+#Вовзращает 1 если x > 0, -1 если x < 0, инчаче 0
 def sign(x):
     if x > 0:
         return 1
@@ -9,34 +9,37 @@ def sign(x):
         return -1
     return 0
 
-
+'''Обновляет значения глобальных переменных, описывающих состояние 
+ракеты в следующий момент времени, используя текущие данные и вычисления на основе 
+физических формул. Она имитирует шаг во времени для симуляции движения ракеты.'''
 def next_step():
     global x, y, h, v, a, t_now, mass_now, v_x, v_y
-    x_tmp = next_x()
-    y_tmp = next_y()
-    v_x_tmp = next_velocity_x()
-    v_y_tmp = next_velocity_y()
-    v_tmp = velocity()
-    h_tmp = altitude()
-    t_now += delta_t
-    a = acceleration(t_now)
-    v = v_tmp
-    x = x_tmp
-    y = y_tmp
-    v_x = v_x_tmp
-    v_y = v_y_tmp
-    h = h_tmp
-    mass_now = mass(t_now)
+    x_tmp = next_x() #координата x в следующий момент времени, вычисляется с помощью функции next_x()
+    y_tmp = next_y() #координата y в следующий момент времени, вычисляется с помощью функции next_y()
+    v_x_tmp = next_velocity_x() #проекция скорости на ось x в следующий момент времени, вычисляется с помощью функции next_velocity_x()
+    v_y_tmp = next_velocity_y() #проекция скорости на ось y в следующий момент времени, вычисляется с помощью функции next_velocity_y()
+    v_tmp = velocity() #общая скорость ракеты в следующий момент времени, вычисляется с помощью функции velocity()
+    h_tmp = altitude() #высота ракеты над поверхностью, вычисляется с помощью функции altitude()
+    t_now += delta_t #прибавляет шаг времени (Δt) к текущему времени. Это обеспечивает переход симуляции к следующему моменту.
+    a = acceleration(t_now) #рассчитывает ускорение ракеты с помощью функции acceleration() на основе текущего времени.
+    v = v_tmp #обновляет общую скорость ракеты.
+    x = x_tmp # обновляет координату x
+    y = y_tmp #обновляет координату y
+    v_x = v_x_tmp #обновляет проекцию скорости на ось x
+    v_y = v_y_tmp #обновляет проекцию скорости на ось y
+    h = h_tmp #обновляет высоту ракеты
+    mass_now = mass(t_now) #обновляет текущую массу ракеты с помощью функции mass(), которая учитывает расход топлива
 
 
+#Функция моделирует время, возращая лист
 def create_time_list(N):
     return [i * delta_t for i in range(N)]
 
-
+#Вычисляет новые координаты x
 def next_x():
     return x + v_x * delta_t
 
-
+#Вычисляет новые координаты y
 def next_y():
     return y + v_y * delta_t
 
@@ -68,7 +71,7 @@ def x_coef_fi():
     elif x * y < 0 and ang_teta + ang_gamma > pi / 2:
         return -abs(cos(abs(ang_gamma - ang_teta)))
 
-
+#Вычисляет текущую массу ракеты на основе времени, расхода топлива и масс ступеней.
 def mass(time_now):
     global real_mass
 
@@ -80,17 +83,17 @@ def mass(time_now):
         real_mass = initial_mass - (time_now - t2) * fuel_consumption2 - m_stage1
     return real_mass
 
-
+#Расчитывает высоту над поверхностьтю
 def altitude():
     return sqrt(x ** 2 + y ** 2) - r
 
 
-# сила тяги?
+# сила тяги
 def traction_force(time_now):
     global specific_impulse1, specific_impulse2, specific_impulse3, specific_impulse4
 
     if time_now <= t1:
-        return specific_impulse1[0]  # ToDO может поставить 1?
+        return specific_impulse1[0] 
     elif time_now <= t2:
         return 0
     elif time_now <= t3:
@@ -238,13 +241,6 @@ def plots():
     plot2.plot(ksp_time_list, ksp_h_list)
     plot2.grid()
 
-    tmp, plot3 = plt.subplots()
-    plot3.set_title('Изменение ускорения ракеты')
-    plot3.set_xlabel('Время в секундах')
-    plot3.set_ylabel('Ускорение в м/с^2')
-    plot3.plot(time_list, a_list)
-    plot3.grid()
-
     tmp, plot4 = plt.subplots()
     plot4.set_title('Изменение массы ракеты')
     plot4.set_xlabel('Время в секундах')
@@ -254,39 +250,11 @@ def plots():
     plot4.legend('Расчетные данные', 'ksp')
     plot4.grid(True)
 
-    tmp, plot_gamma = plt.subplots()
-    plot_gamma.set_title('Изменение gamma ракеты')
-    plot_gamma.set_xlabel('Время в секундах')
-    plot_gamma.set_ylabel('Скорость в радианах')
-    plot_gamma.plot(time_list, gamma_list)
-    plot_gamma.grid()
-
-    tmp, plot_teta = plt.subplots()
-    plot_teta.set_title('Изменение teta ракеты')
-    plot_teta.set_xlabel('Время в секундах')
-    plot_teta.set_ylabel('Скорость в радианах')
-    plot_teta.plot(time_list, teta_list)
-    plot_teta.grid()
-
-    tmp, plot_a_x = plt.subplots()
-    plot_a_x.set_title('Изменение ускорения по оси х')
-    plot_a_x.set_xlabel('Время в секундах')
-    plot_a_x.set_ylabel('Ускорение в м/с^2')
-    plot_a_x.plot(time_list, a_x_list)
-    plot_a_x.grid()
-
-    tmp, plot_a_y = plt.subplots()
-    plot_a_y.set_title('Изменение ускорения по оси y')
-    plot_a_y.set_xlabel('Время в секундах')
-    plot_a_y.set_ylabel('Ускорение в м/с^2')
-    plot_a_y.plot(time_list, a_y_list)
-    plot_a_y.grid()
-
 
 def ksp_data():
     global ksp_mass_list, ksp_time_list, ksp_x_coor_list, ksp_y_coor_list, ksp_h_list, ksp_velocity_list
 
-    with open('Autopilot/Logs/stagetime_data.txt', 'r') as file:
+    with open('/home/aidar/Документы/GitHub/VARKT/Autopilot/Logs/stagetime_data.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
             lst = line.split('; ')
@@ -364,4 +332,3 @@ a_y = acceleration_y(0)
 
 plots()
 plt.show()
-

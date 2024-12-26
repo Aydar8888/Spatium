@@ -40,7 +40,6 @@ phase_angle = angle_between_2_vectors(kerbin_pos(), duna_pos())
 TT = 0.5 * Kerbin.orbit.semi_major_axis / Duna.orbit.semi_major_axis + 0.5
 need_phase_angle = math.pi * (1 - TT ** (3 / 2))
 
-# print(f'Текущий угол: {phase_angle}, требуемый угол: {need_phase_angle}')
 
 
 w_kerbin = 2 * math.pi / Kerbin.orbit.period  # Угловая скорость Кербина на Солнечной орбите 
@@ -51,19 +50,14 @@ pha0 = angle_between_2_vectors(kerbin_pos(), duna_pos())
 time.sleep(0.1)
 pha1 = angle_between_2_vectors(kerbin_pos(), duna_pos())
 if pha0 > pha1:
-    # print("Кербин догоняет Дюну")
     delta_angle = phase_angle - need_phase_angle
     if delta_angle < 0:
-        # print("Мы профукали момент, ждём полного оборота")
         delta_angle += 2 * math.pi
-    # else:
-        # print("Нужный момент скоро настанет, ждём")
 else:
-    # print("Кербин обогнал Дюну, ждём полный круг")
     delta_angle = 2 * math.pi - phase_angle - need_phase_angle
 
 t_sec = delta_angle / (w_kerbin - w_duna)  # количество секунд, через которые будет окно старта
 t_days = t_sec / (3600 * 6)
 t_years = t_days // 426.08
 t_days -= t_years * 426.08
-print(f"Стартуем через {t_years* 365 + t_days}")
+print(f"Стартуем через {t_years* 365 + t_days} дней")

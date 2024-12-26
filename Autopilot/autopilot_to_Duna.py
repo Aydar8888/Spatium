@@ -46,13 +46,13 @@ def test3(mu, r1, r2):
     return dv1, dv2
 
 
-# считаем скорости, с которыми ракеты вылетит/влетит из/в сферы влияния Кербина/Дюны
+# считаем скорости, с которыми ракеты вылетит/влетит из/в сферы влияния Кербина
 v_sk, v_sd = test3(Sun.gravitational_parameter, Kerbin.orbit.semi_major_axis, Duna.orbit.semi_major_axis)
 # считаем, с какой скоростью 
 v_ej = math.sqrt(v_sk ** 2 + 2 * Kerbin.gravitational_parameter * (1 / vessel.orbit.semi_major_axis - 1 / Kerbin.sphere_of_influence))
 v_rocket = math.sqrt(Kerbin.gravitational_parameter / vessel.orbit.semi_major_axis)
 burn = v_ej - v_rocket
-# print(f'Delta v посчитан {burn}')
+
 
 # Calculating burn time (using rocket equation)
 F = vessel.available_thrust
@@ -61,7 +61,7 @@ m0 = vessel.mass
 m1 = m0 / math.exp(burn/Isp)
 flow_rate = F / Isp
 burn_time = (m0 - m1) / flow_rate
-# print(f'Время работы двигателя {burn_time}')
+
 
 
 def kerbin_pos():
@@ -79,7 +79,6 @@ def vessel_pos():
 # Считаем нужный угол для вылета из SOI, в радианах
 some_e = 1 + vessel.orbit.semi_major_axis * v_sk ** 2 / Kerbin.gravitational_parameter
 need_theta = math.acos(-1 / some_e)
-# print(f'Требуется угол {math.degrees(need_theta)}')
 
 # угловая скорость ракеты
 mu_kerbin = Kerbin.gravitational_parameter
