@@ -5,25 +5,24 @@ import math
 import threading
 
 
-# # Cбор данных
-# def telem():
-#     while True:
-#         t = flight_time() # время
-#         h = vessel.flight().mean_altitude # высота
-#         v = vessel.flight().true_air_speed # скорость
-#         m = vessel.mass # масса
-#         coord1 = vessel.position(conn.space_center.bodies['Kerbin'].non_rotating_reference_frame) # координаты отн. земли
-#         coord2 = vessel.position(conn.space_center.bodies['Sun'].non_rotating_reference_frame) # координаты отн. солнца
-#         file = open("Autopilot/Logs/stagetime_data.txt", 'a')
-#         file.write("; ".join(list(map(str, [t, h, v, m] + [coord1[0]] + [coord1[1]] + [coord1[2]] + [coord2[0]] + [coord2[1]] + [coord2[2]]))))
-#         file.write("\n")
-#         file.close()
-#         time.sleep(1)
+# Cбор данных
+def telem():
+    while True:
+        t = flight_time() # время
+        h = vessel.flight().mean_altitude # высота
+        v = vessel.flight().true_air_speed # скорость
+        m = vessel.mass # масса
+        coord1 = vessel.position(conn.space_center.bodies['Kerbin'].non_rotating_reference_frame) # координаты отн. земли
+        coord2 = vessel.position(conn.space_center.bodies['Sun'].non_rotating_reference_frame) # координаты отн. солнца
+        file = open("Autopilot/Logs/stagetime_data.txt", 'a')
+        file.write("; ".join(list(map(str, [t, h, v, m] + [coord1[0]] + [coord1[1]] + [coord1[2]] + [coord2[0]] + [coord2[1]] + [coord2[2]]))))
+        file.write("\n")
+        file.close()
+        time.sleep(1)
 
-# def flight_time():
-#     return str(conn.space_center.ut - ut_start)
+def flight_time():
+    return str(conn.space_center.ut - ut_start)
 
-data_time = []
 conn = krpc.connect()  # подключаемся к серверу 
 vessel = conn.space_center.active_vessel  # активный корабль
 control = vessel.control  # контролировать корабль
@@ -37,8 +36,8 @@ ap.engage()
 
 # переменные потоки, при вызове которых мы получаем данные из KSP
 ut = conn.add_stream(getattr, conn.space_center, 'ut')  # текущее время в KSP
-stage_4_resources = vessel.resources_in_decouple_stage(stage=5, cumulative=False)  # пятая ступень (та, где отделяются ускорители)
-srb_fuel = conn.add_stream(stage_4_resources.amount, 'SolidFuel')  # количество топлива во всех ускорителях в сумме
+stage_5_resources = vessel.resources_in_decouple_stage(stage=5, cumulative=False)  # пятая ступень (та, где отделяются ускорители)
+srb_fuel = conn.add_stream(stage_5_resources.amount, 'SolidFuel')  # количество топлива во всех ускорителях в сумме
 altitude = conn.add_stream(getattr, vessel.flight(), 'mean_altitude')  # высота над уровнем моря в метрах
 apoapsis = conn.add_stream(getattr, vessel.orbit, 'apoapsis_altitude')  # высота апоцентра в метрах, если считать от уровня моря
 periapsis = conn.add_stream(getattr, vessel.orbit, 'periapsis_altitude')  # высота перицентра в метрах, если счтиать от уровня моря
@@ -56,8 +55,7 @@ time.sleep(0.5)
 
 print("Start!")
 control.activate_next_stage()
-start_time = time.time()
-# threading.Thread(target=telem).start()
+threading.Thread(target=telem).start()
 
 
 # параметры, с которыми ракета будет наклоняться в виде (высота апоцентра, угол рысканья)
@@ -94,11 +92,9 @@ angle = set_elliptic(pos0, pos1)
 while altitude() < pos0[0]:
    time.sleep(0.5)  
 
-# наклоняем ракету до тех пор, пока топливо в тту не закончится
+# наклоняем ракету до тех пор, пока топливо в ускорителях не закончится
 while srb_fuel() >= 0.1:
-    # print(apoapsis(), angle(apoapsis()))
     ap.target_pitch = math.degrees(math.pi / 2 - angle(altitude()))
-    # print(srb_fuel(), math.degrees(math.pi / 2 - angle(altitude())))
     time.sleep(0.2)
 ap.target_pitch = 0
 
@@ -110,12 +106,11 @@ print("Ускорители отброшены")
 """
 ВЫХОД НА КРУГОВУЮ ОРБИТУ (орбитальный этап)
 Задачи:
-    1. Открыть солнечные панели
-    2. Набрать необходимую дельта скорость
+    1. Набрать необходимую дельта скорость
 """
 
 # Функция, которая считает гомановский переход
-def test3(mu, r1, r2):
+def gam(mu, r1, r2):
     # принимает стандартный гравитационный параметр mu
     # радиус круговой орбиты r1, радиус круговой орбиты r2
     # r1 < r2
@@ -127,14 +122,11 @@ def test3(mu, r1, r2):
     return dv1, dv2
 
 time.sleep(3)
-
-# print("Добавляем ноду манёвра")
 mu = vessel.orbit.body.gravitational_parameter
-delta_v = test3(mu, vessel.orbit.periapsis, vessel.orbit.apoapsis)[1]
+delta_v = gam(mu, vessel.orbit.periapsis, vessel.orbit.apoapsis)[1]
 node = control.add_node(ut() + vessel.orbit.time_to_apoapsis, prograde=delta_v)
 time.sleep(1)
 
-# print("Считаем время работы двигателя")
 F = vessel.available_thrust
 Isp = vessel.specific_impulse * 9.82
 m0 = vessel.mass
@@ -144,10 +136,10 @@ burn_time = (m0 - m1) / flow_rate
 
 print("Выключаем автопилот")
 ap.disengage()
-# print("Включаем САС")
+
 control.sas = True
 time.sleep(1)
-# print("Ставим САС на манёвр")
+
 control.sas_mode = conn.space_center.SASMode.maneuver
 
 print("Ждём момента до ускорения")
@@ -167,6 +159,6 @@ while ut() < time_when_end:
 print("Ракета успешно выведена на орбиту 250 км")
 control.activate_next_stage()
 control.throttle = 0
-data_time.append(time.time() - start_time)
+
 control.remove_nodes()
 
