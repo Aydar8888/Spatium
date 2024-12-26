@@ -5,23 +5,23 @@ import math
 import threading
 
 
-# Cбор данных
-def telem():
-    while True:
-        t = flight_time() # время
-        h = vessel.flight().mean_altitude # высота
-        v = vessel.flight().true_air_speed # скорость
-        m = vessel.mass # масса
-        coord1 = vessel.position(conn.space_center.bodies['Kerbin'].non_rotating_reference_frame) # координаты отн. земли
-        coord2 = vessel.position(conn.space_center.bodies['Sun'].non_rotating_reference_frame) # координаты отн. солнца
-        file = open("Autopilot/Logs/stagetime_data.txt", 'a')
-        file.write("; ".join(list(map(str, [t, h, v, m] + [coord1[0]] + [coord1[1]] + [coord1[2]] + [coord2[0]] + [coord2[1]] + [coord2[2]]))))
-        file.write("\n")
-        file.close()
-        time.sleep(1)
+# # Cбор данных
+# def telem():
+#     while True:
+#         t = flight_time() # время
+#         h = vessel.flight().mean_altitude # высота
+#         v = vessel.flight().true_air_speed # скорость
+#         m = vessel.mass # масса
+#         coord1 = vessel.position(conn.space_center.bodies['Kerbin'].non_rotating_reference_frame) # координаты отн. земли
+#         coord2 = vessel.position(conn.space_center.bodies['Sun'].non_rotating_reference_frame) # координаты отн. солнца
+#         file = open("Autopilot/Logs/stagetime_data.txt", 'a')
+#         file.write("; ".join(list(map(str, [t, h, v, m] + [coord1[0]] + [coord1[1]] + [coord1[2]] + [coord2[0]] + [coord2[1]] + [coord2[2]]))))
+#         file.write("\n")
+#         file.close()
+#         time.sleep(1)
 
-def flight_time():
-    return str(conn.space_center.ut - ut_start)
+# def flight_time():
+#     return str(conn.space_center.ut - ut_start)
 
 data_time = []
 conn = krpc.connect()  # подключаемся к серверу 
@@ -45,9 +45,6 @@ periapsis = conn.add_stream(getattr, vessel.orbit, 'periapsis_altitude')  # вы
 pitch = conn.add_stream(getattr, vessel.flight(), 'pitch')  # рысканье ракеты
 
 
-# log_file = log.create_log_file()
-# log_thread = threading.Thread(target=log.collect_data_and_log, args=(vessel, log_file,))
-# log_thread.start()
 
 # запускаем ракету
 print("3...")
@@ -60,7 +57,7 @@ time.sleep(0.5)
 print("Start!")
 control.activate_next_stage()
 start_time = time.time()
-threading.Thread(target=telem).start()
+# threading.Thread(target=telem).start()
 
 
 # параметры, с которыми ракета будет наклоняться в виде (высота апоцентра, угол рысканья)

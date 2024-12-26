@@ -66,4 +66,4 @@ t_sec = delta_angle / (w_kerbin - w_duna)  # количество секунд, 
 t_days = t_sec / (3600 * 6)
 t_years = t_days // 426.08
 t_days -= t_years * 426.08
-print(f"Через {t_years} лет и {t_days} дней нужно запускать ракету")
+print(f"Стартуем через {t_years* 365 + t_days}")
